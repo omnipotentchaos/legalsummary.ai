@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Clause Dictionary - read access for everyone, write access restricted
+    match /clauseDictionary/{document} {
+      allow read: if true;
+      allow write: if false; // Only allow writes through admin SDK
+    }
+    
+    // Document analysis results - temporary storage, auto-delete after 24 hours
+    match /documentAnalysis/{document} {
+      allow read, write: if request.time < resource.data.expiresAt;
+      allow create: if request.time < request.resource.data.expiresAt;
+    }
+    
+    // Analytics data - write only, no read access for privacy
+    match /analytics/{document} {
+      allow read: if false;
+      allow write: if true;
+    }
+    
+    // Block all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

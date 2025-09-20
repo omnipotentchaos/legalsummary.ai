@@ -1,0 +1,39 @@
+Dependencies
+
+/node_modules
+Next.js build output and cache
+
+/.next/
+/out/
+Environment Variables
+Ignore all local environment files.
+Never commit secrets or API keys!
+
+.env*.local
+.env
+key.json
+Production build folder (if you are exporting a static site)
+
+/build
+Log files
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+Temporary files and folders
+
+/temp/
+Editor directories and files
+
+.vscode/
+.idea/
+*.suo
+.ntvs
+*.njsproj
+*.sln
+*.sw?
+OS-generated files
+
+.DS_Store
+Thumbs.db
