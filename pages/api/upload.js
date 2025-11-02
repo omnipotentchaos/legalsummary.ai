@@ -1,4 +1,4 @@
-// Fixed API route for document upload - better error handling
+// Fixed API route with proper language support throughout
 import dotenv from 'dotenv';
 dotenv.config();
 import formidable from 'formidable';
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   
   try {
     const form = formidable({
-      maxFileSize: 10 * 1024 * 1024, // 10MB
+      maxFileSize: 10 * 1024 * 1024,
       filter: ({ mimetype }) => {
         return mimetype === 'application/pdf' || 
                mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -40,7 +40,6 @@ export default async function handler(req, res) {
     try {
       const fileBuffer = fs.readFileSync(uploadedFile.filepath);
       
-      // Initialize processor with better error handling
       let processor;
       try {
         processor = new DocumentProcessor();
@@ -57,7 +56,7 @@ export default async function handler(req, res) {
       const extractedText = await processor.extractText(fileBuffer, uploadedFile.mimetype);
       console.log('Text extraction completed for', processingId, 'text length:', extractedText.length);
 
-      // Detect language with fallback
+      // Detect language with improved detection
       let languageDetection = { language: 'en', confidence: 0.5 };
       try {
         languageDetection = await processor.detectLanguage(extractedText);
@@ -66,14 +65,16 @@ export default async function handler(req, res) {
         console.warn('Language detection failed:', langError.message);
       }
 
-      // Process document with better error handling
-      console.log('Starting clause classification...', processingId);
+      // Use detected language for all subsequent processing
+      const processingLanguage = languageDetection.language || 'en';
+      console.log(`Using language for processing: ${processingLanguage}`);
 
-      // Process clauses with timeout protection
+      // Process clauses with language context
+      console.log('Starting clause classification...', processingId);
       let classifiedClauses = [];
       try {
         classifiedClauses = await Promise.race([
-          processor.classifyDocument(extractedText, languageDetection.language),
+          processor.classifyDocument(extractedText, processingLanguage),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Clause classification timeout')), 15000)
           )
@@ -81,87 +82,61 @@ export default async function handler(req, res) {
         console.log('Clause classification completed', processingId);
       } catch (clauseError) {
         console.warn('Clause classification failed:', clauseError.message);
-        classifiedClauses = [{
-          text: extractedText.substring(0, 500) + "...",
-          type: 'general',
-          confidence: 0.5,
-          riskScore: 2,
-          riskCategory: 'medium',
-          explanation: 'This document contains legal terms that should be reviewed carefully.',
-          fromDictionary: false,
-          suggestedQuestions: [
-            'What are the main obligations in this document?',
-            'Are there any penalties or fees mentioned?'
-          ],
-        }];
+        classifiedClauses = processor.getFallbackClauses(extractedText);
       }
 
-      // Generate summary with timeout protection
-      let summary = 'Document uploaded successfully. This appears to be a legal document containing various terms and conditions.';
+      // Generate summary in detected language
+      let summary = 'Document uploaded successfully.';
       try {
         summary = await Promise.race([
-          processor.generateSummary(extractedText, languageDetection.language),
+          processor.generateSummary(extractedText, processingLanguage),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Summary generation timeout')), 30000)
           )
         ]);
-        console.log('Summary generated successfully', processingId);
+        console.log('Summary generated successfully in', processingLanguage, processingId);
       } catch (summaryError) {
         console.warn('Summary generation failed:', summaryError.message);
-        try {
-          // Try to get structured fallback summary
-          summary = processor.generateStructuredFallbackSummary(extractedText);
-          console.log('Using structured fallback summary', processingId);
-        } catch (fallbackError) {
-          console.warn('Fallback summary failed:', fallbackError.message);
-          // Use basic fallback
-          summary = processor.getDetailedFallbackSummary(extractedText);
-        }
+        summary = processor.generateDetailedStructuredSummary(extractedText);
       }
 
-      // Generate smart questions with timeout protection
-      let smartQuestions = [
-        "What are the main terms and conditions?",
-        "Are there any important deadlines?",
-        "What are my rights and obligations?",
-        "Are there any fees or penalties mentioned?"
-      ];
+      // Generate smart questions in detected language
+      let smartQuestions = processor.getFallbackQuestions();
       try {
         smartQuestions = await Promise.race([
-          processor.generateSmartQuestions(extractedText, classifiedClauses, languageDetection.language),
+          processor.generateSmartQuestions(extractedText, classifiedClauses, processingLanguage),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Smart questions timeout')), 8000)
           )
         ]);
-        console.log('Smart questions generated', processingId);
+        console.log('Smart questions generated in', processingLanguage, processingId);
       } catch (questionError) {
         console.warn('Smart questions generation failed:', questionError.message);
-        // Use fallback questions
-        smartQuestions = processor.getFallbackQuestions();
       }
 
       console.log('All processing completed for', processingId);
 
-      // Build response with validation
       const documentData = {
         id: processingId,
         summary: summary || 'Document analysis completed.',
         clauses: Array.isArray(classifiedClauses) ? classifiedClauses : [],
-        entities: [], // Placeholder for future feature
+        entities: [],
         sentiment: { score: 0, magnitude: 0 },
         smartQuestions: Array.isArray(smartQuestions) ? smartQuestions : [],
         fileType: uploadedFile.mimetype,
         fileName: uploadedFile.originalFilename,
         processedAt: new Date(),
-        detectedLanguage: languageDetection.language || 'en',
+        detectedLanguage: processingLanguage,
         languageConfidence: languageDetection.confidence || 0.5,
-        recommendedLanguage: languageDetection.confidence > 0.7 ? languageDetection.language : 'en',
+        recommendedLanguage: languageDetection.confidence > 0.7 ? processingLanguage : 'en',
+        // Store original extracted text for regeneration
+        originalText: extractedText,
         processingStats: {
           totalClauses: Array.isArray(classifiedClauses) ? classifiedClauses.length : 0,
           dictionaryMatches: Array.isArray(classifiedClauses) ? classifiedClauses.filter(c => c.fromDictionary).length : 0,
           highRiskClauses: Array.isArray(classifiedClauses) ? classifiedClauses.filter(c => c.riskCategory === 'high').length : 0,
           processingTime: Date.now() - parseInt(processingId),
-          languageDetected: languageDetection.language || 'en',
+          languageDetected: processingLanguage,
           languageConfidence: languageDetection.confidence || 0.5
         }
       };
@@ -170,53 +145,19 @@ export default async function handler(req, res) {
         success: true,
         data: documentData,
         languageDetection: {
-          detected: languageDetection.language || 'en',
+          detected: processingLanguage,
           confidence: languageDetection.confidence || 0.5,
-          recommended: languageDetection.confidence > 0.7 ? languageDetection.language : 'en'
+          recommended: languageDetection.confidence > 0.7 ? processingLanguage : 'en'
         }
       });
 
     } catch (processingError) {
       console.error('Processing error:', processingError.message);
-      console.error('Processing error stack:', processingError.stack);
       
-      // Return structured fallback response
       const fallbackData = {
         id: processingId,
-        summary: `
-DOCUMENT OVERVIEW:
-Document uploaded successfully. This appears to be a legal document containing various terms and conditions that establish obligations between parties.
-
-KEY TERMS & CONDITIONS:
-The document contains provisions related to agreements, responsibilities, and procedural requirements that should be carefully reviewed.
-
-RIGHTS & OBLIGATIONS:
-Both parties have defined rights and corresponding duties under this agreement that must be understood and followed.
-
-RISKS & PENALTIES:
-The document may contain provisions addressing consequences for non-compliance and potential penalties.
-
-IMPORTANT DEADLINES & NOTICES:
-Review the document for specific timing requirements, notice periods, and deadline structures.
-
-RECOMMENDED ACTIONS:
-Please review all sections carefully and consider seeking legal advice if you have questions about specific terms or your obligations.
-        `.trim(),
-        clauses: [{
-          text: 'Document processing completed with limited analysis due to technical constraints.',
-          type: 'general',
-          confidence: 0.5,
-          riskScore: 2,
-          riskCategory: 'medium',
-          explanation: 'This document has been uploaded successfully but requires manual review for detailed analysis.',
-          fromDictionary: false,
-          suggestedQuestions: [
-            'What are the key terms in this document?',
-            'What should I pay attention to?',
-            'Are there any important deadlines?',
-            'What are my main obligations?'
-          ],
-        }],
+        summary: 'Document uploaded successfully. Please review the document carefully.',
+        clauses: processor ? processor.getFallbackClauses('') : [],
         entities: [],
         sentiment: { score: 0, magnitude: 0 },
         smartQuestions: [
@@ -231,6 +172,7 @@ Please review all sections carefully and consider seeking legal advice if you ha
         detectedLanguage: 'en',
         languageConfidence: 0.5,
         recommendedLanguage: 'en',
+        originalText: extractedText || '', // Include extracted text even in fallback
         hasPartialFailure: true,
         processingError: 'Limited processing due to technical constraints'
       };
@@ -238,7 +180,7 @@ Please review all sections carefully and consider seeking legal advice if you ha
       res.status(200).json({
         success: true,
         data: fallbackData,
-        warning: 'Document processed with basic analysis due to technical limitations.',
+        warning: 'Document processed with basic analysis.',
         languageDetection: {
           detected: 'en',
           confidence: 0.5,
@@ -249,13 +191,11 @@ Please review all sections carefully and consider seeking legal advice if you ha
 
   } catch (error) {
     console.error('Upload error:', error.message);
-    console.error('Upload error stack:', error.stack);
     res.status(500).json({ 
       error: 'Failed to process document',
       details: error.message 
     });
   } finally {
-    // Clean up uploaded file
     if (uploadedFile) {
       try {
         fs.unlinkSync(uploadedFile.filepath);

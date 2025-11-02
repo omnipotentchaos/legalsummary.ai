@@ -1,7 +1,27 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // User profiles and their documents
+    match /users/{userId} {
+      // Users can read and write their own profile
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // User's document history
+      match /documents/{documentId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Translation cache - accessible to authenticated users
+    match /translation_cache/{documentId} {
+      allow read, write: if request.auth != null;
+      
+      match /languages/{language} {
+        allow read, write: if request.auth != null;
+      }
+    }
+    
     // Clause Dictionary - read access for everyone, write access restricted
     match /clauseDictionary/{document} {
       allow read: if true;

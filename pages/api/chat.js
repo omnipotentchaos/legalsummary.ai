@@ -1,4 +1,4 @@
-// Enhanced API route for chatbot questions with decorated responses
+// Enhanced API route for chatbot with proper language support
 import { DocumentProcessor } from '../../lib/documentProcessor';
 
 export default async function handler(req, res) {
@@ -15,19 +15,22 @@ export default async function handler(req, res) {
       });
     }
 
+    console.log(`Processing chat question in language: ${language}`);
+
     const processor = new DocumentProcessor();
     
-    // Get the raw answer
+    // Get the answer in the requested language
     const rawAnswer = await processor.answerQuestion(question, documentText, language);
     
     // Decorate the response with structured formatting
-    const decoratedAnswer = decorateResponse(rawAnswer, question);
+    const decoratedAnswer = decorateResponse(rawAnswer, question, language);
 
     res.status(200).json({
       success: true,
       answer: decoratedAnswer.text,
       decoration: decoratedAnswer.decoration,
       question: question,
+      language: language,
       timestamp: new Date().toISOString(),
       metadata: decoratedAnswer.metadata
     });
@@ -41,8 +44,7 @@ export default async function handler(req, res) {
   }
 }
 
-function decorateResponse(answer, question) {
-  // Detect response type and add appropriate decoration
+function decorateResponse(answer, question, language = 'en') {
   const decoration = {
     type: 'default',
     icon: 'message-circle',
@@ -54,30 +56,79 @@ function decorateResponse(answer, question) {
     confidence: 'medium',
     category: 'general',
     hasWarning: false,
-    hasList: false
+    hasList: false,
+    language: language
   };
 
   const lowerAnswer = answer.toLowerCase();
   const lowerQuestion = question.toLowerCase();
 
+  // Multi-language warning keywords
+  const warningKeywords = {
+    en: ['penalty', 'liable', 'risk', 'danger', 'breach', 'violation', 'forfeit'],
+    es: ['penalización', 'responsable', 'riesgo', 'peligro', 'incumplimiento', 'violación'],
+    fr: ['pénalité', 'responsable', 'risque', 'danger', 'violation', 'manquement'],
+    de: ['strafe', 'haftbar', 'risiko', 'gefahr', 'verletzung', 'verstoß'],
+    it: ['penalità', 'responsabile', 'rischio', 'pericolo', 'violazione'],
+    pt: ['penalidade', 'responsável', 'risco', 'perigo', 'violação'],
+    hi: ['जुर्माना', 'जिम्मेदार', 'जोखिम', 'खतरा'],
+    zh: ['处罚', '责任', '风险', '危险'],
+    ja: ['罰則', '責任', 'リスク', '危険'],
+    ko: ['벌금', '책임', '위험']
+  };
+
+  const financialKeywords = {
+    en: ['cost', 'fee', 'pay', 'price', 'amount', '$'],
+    es: ['costo', 'tarifa', 'pagar', 'precio', 'cantidad', '$'],
+    fr: ['coût', 'frais', 'payer', 'prix', 'montant', '€'],
+    de: ['kosten', 'gebühr', 'zahlen', 'preis', 'betrag', '€'],
+    it: ['costo', 'tariffa', 'pagare', 'prezzo', 'importo', '€'],
+    pt: ['custo', 'taxa', 'pagar', 'preço', 'quantia', '$'],
+  };
+
+  const terminationKeywords = {
+    en: ['terminate', 'cancel', 'end', 'expire'],
+    es: ['terminar', 'cancelar', 'finalizar', 'expirar'],
+    fr: ['résilier', 'annuler', 'terminer', 'expirer'],
+    de: ['kündigen', 'beenden', 'stornieren', 'auslaufen'],
+    it: ['terminare', 'cancellare', 'finire', 'scadere'],
+    pt: ['terminar', 'cancelar', 'finalizar', 'expirar'],
+  };
+
+  // Check for warning indicators in question or answer
+  const langWarnings = warningKeywords[language] || warningKeywords['en'];
+  const hasWarning = langWarnings.some(keyword => 
+    lowerAnswer.includes(keyword) || lowerQuestion.includes(keyword)
+  );
+
+  const langFinancial = financialKeywords[language] || financialKeywords['en'];
+  const hasFinancial = langFinancial.some(keyword => 
+    lowerAnswer.includes(keyword) || lowerQuestion.includes(keyword)
+  );
+
+  const langTermination = terminationKeywords[language] || terminationKeywords['en'];
+  const hasTermination = langTermination.some(keyword => 
+    lowerAnswer.includes(keyword) || lowerQuestion.includes(keyword)
+  );
+
   // Determine response category and styling
-  if (lowerQuestion.includes('risk') || lowerQuestion.includes('danger') || lowerAnswer.includes('penalty') || lowerAnswer.includes('liable')) {
+  if (hasWarning || lowerQuestion.includes('risk') || lowerQuestion.includes('danger')) {
     decoration.type = 'warning';
     decoration.icon = 'alert-triangle';
     decoration.color = 'red';
     metadata.hasWarning = true;
     metadata.category = 'risk';
-  } else if (lowerQuestion.includes('cost') || lowerQuestion.includes('fee') || lowerQuestion.includes('pay') || lowerAnswer.includes('$')) {
+  } else if (hasFinancial) {
     decoration.type = 'financial';
     decoration.icon = 'dollar-sign';
     decoration.color = 'green';
     metadata.category = 'financial';
-  } else if (lowerQuestion.includes('terminate') || lowerQuestion.includes('cancel') || lowerQuestion.includes('end')) {
+  } else if (hasTermination) {
     decoration.type = 'termination';
     decoration.icon = 'x-circle';
     decoration.color = 'orange';
     metadata.category = 'termination';
-  } else if (lowerQuestion.includes('right') || lowerQuestion.includes('obligation') || lowerQuestion.includes('must')) {
+  } else if (lowerQuestion.includes('right') || lowerQuestion.includes('obligation')) {
     decoration.type = 'legal';
     decoration.icon = 'shield';
     decoration.color = 'purple';
@@ -92,11 +143,15 @@ function decorateResponse(answer, question) {
   // Structure the answer with better formatting
   let structuredAnswer = answer;
 
-  // Add emphasis to important terms
+  // Multi-language important terms
   const importantTerms = [
-    'immediately', 'required', 'must', 'shall', 'penalty', 'fine', 'liable', 
-    'terminate', 'breach', 'violation', 'damages', 'fee', 'cost', 'payment',
-    'notice', 'written', 'days', 'months', 'years', 'deadline'
+    ...langWarnings,
+    ...(langFinancial || []),
+    ...(langTermination || []),
+    'immediately', 'required', 'must', 'shall',
+    'inmediatamente', 'requerido', 'debe', // Spanish
+    'immédiatement', 'requis', 'doit', // French
+    'sofort', 'erforderlich', 'muss', // German
   ];
 
   importantTerms.forEach(term => {
@@ -116,7 +171,7 @@ function decorateResponse(answer, question) {
 
   // Add section breaks for better readability
   if (structuredAnswer.length > 200) {
-    // Try to break long responses into paragraphs
+    // Break long responses into paragraphs
     structuredAnswer = structuredAnswer.replace(/\. ([A-Z])/g, '.\n\n$1');
   }
 

@@ -18,7 +18,8 @@ export default function ChatInterface({ documentData, language }) {
     return icons[iconName] || MessageCircle;
   };
 
-  const getColorClasses = (color, decoration) => {
+  // FIX: This function already correctly returns static class strings used below.
+  const getColorClasses = (color) => {
     const colors = {
       red: {
         bg: 'bg-red-900/20 border-red-500/30',
@@ -48,6 +49,48 @@ export default function ChatInterface({ documentData, language }) {
     };
     return colors[color] || colors.blue;
   };
+  
+  // ADDED UI TRANSLATION DICTIONARY
+  const uiTranslations = {
+    en: {
+      askQuestions: 'Ask Questions About Your Document',
+      getAnswers: 'Get instant answers about your legal document in plain English',
+      suggestedQuestions: 'Suggested Questions:',
+      typeQuestion: 'Type your question about the document...',
+      emptyState: 'Click on a suggested question above or type your own question to get started!',
+    },
+    es: {
+      askQuestions: 'Pregunte Sobre Su Documento',
+      getAnswers: 'Obtenga respuestas instantáneas sobre su documento legal en lenguaje sencillo',
+      suggestedQuestions: 'Preguntas Sugeridas:',
+      typeQuestion: 'Escriba su pregunta sobre el documento...',
+      emptyState: 'Haga clic en una pregunta sugerida o escriba su propia pregunta para comenzar!',
+    },
+    fr: {
+      askQuestions: 'Posez des Questions sur Votre Document',
+      getAnswers: 'Obtenez des réponses instantanées sur votre document juridique',
+      suggestedQuestions: 'Questions Suggérées :',
+      typeQuestion: 'Tapez votre question sur le document...',
+      emptyState: 'Cliquez sur une question suggérée ci-dessus ou tapez votre propre question pour commencer !',
+    },
+    hi: {
+      askQuestions: 'अपने दस्तावेज़ के बारे में प्रश्न पूछें',
+      getAnswers: 'अपने कानूनी दस्तावेज़ के बारे में तुरंत जवाब पाएं',
+      suggestedQuestions: 'सुझाए गए प्रश्न:',
+      typeQuestion: 'दस्तावेज़ के बारे में अपना प्रश्न टाइप करें...',
+      emptyState: 'शुरू करने के लिए ऊपर सुझाए गए प्रश्न पर क्लिक करें या अपना प्रश्न टाइप करें!',
+    },
+    kn: {
+      askQuestions: 'ನಿಮ್ಮ ಡಾಕ್ಯುಮೆಂಟ್ ಬಗ್ಗೆ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಿ',
+      getAnswers: 'ನಿಮ್ಮ ಕಾನೂನು ಡಾಕ್ಯುಮೆಂಟ್ ಬಗ್ಗೆ ತ್ವರಿತ ಉತ್ತರಗಳನ್ನು ಪಡೆಯಿರಿ',
+      suggestedQuestions: 'ಸೂಚಿಸಲಾದ ಪ್ರಶ್ನೆಗಳು:',
+      typeQuestion: 'ಡಾಕ್ಯುಮೆಂಟ್ ಬಗ್ಗೆ ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಟೈಪ್ ಮಾಡಿ...',
+      emptyState: 'ಪ್ರಾರಂಭಿಸಲು ಮೇಲಿನ ಸೂಚಿತ ಪ್ರಶ್ನೆಯ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ನಿಮ್ಮ ಸ್ವಂತ ಪ್ರಶ್ನೆಯನ್ನು ಟೈಪ್ ಮಾಡಿ!',
+    }
+  };
+
+  const t = uiTranslations[language] || uiTranslations.en;
+  // ===========================================
 
   const formatMessage = (text, decoration) => {
     if (!decoration) return text;
@@ -145,17 +188,20 @@ export default function ChatInterface({ documentData, language }) {
       <div className="border-b border-gray-700 p-6">
         <h3 className="text-xl font-semibold text-white flex items-center">
           <MessageSquare className="h-6 w-6 text-blue-400 mr-2" />
-          Ask Questions About Your Document
+          {t.askQuestions}
         </h3>
         <p className="text-gray-300 mt-1">
-          Get instant answers about your legal document in plain English
+          {t.getAnswers}
         </p>
       </div>
 
       {/* Suggested Questions */}
       <div className="p-6 border-b border-gray-700 bg-gray-800/50">
-        <h4 className="font-medium text-white mb-3">Suggested Questions:</h4>
+        <h4 className="font-medium text-white mb-3">
+          {t.suggestedQuestions}
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* NOTE: documentData.smartQuestions must contain translated strings (handled in documentProcessor.js) */}
           {documentData.smartQuestions.map((question, index) => (
             <button
               key={index}
@@ -175,12 +221,17 @@ export default function ChatInterface({ documentData, language }) {
           <div className="text-center py-8">
             <Bot className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <p className="text-gray-400">
-              Click on a suggested question above or type your own question to get started!
+              {t.emptyState}
             </p>
           </div>
         ) : (
           <div className="space-y-4 max-h-96 overflow-y-auto">
-            {messages.map((message) => (
+            {messages.map((message) => {
+              const colorClasses = message.decoration 
+                ? getColorClasses(message.decoration.color) 
+                : getColorClasses('blue'); // Default to blue
+
+              return (
               <div
                 key={message.id}
                 className={`flex items-start space-x-3 ${
@@ -191,14 +242,11 @@ export default function ChatInterface({ documentData, language }) {
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                     message.isError 
                       ? 'bg-red-900/50 border border-red-500/30' 
-                      : message.decoration?.color
-                      ? `bg-${message.decoration.color}-900/30 border border-${message.decoration.color}-500/30`
-                      : 'bg-blue-900/30 border border-blue-500/30'
+                      : colorClasses.bg // FIX: Use static class from lookup
                   }`}>
                     {message.decoration && !message.isError ? (
                       (() => {
                         const IconComponent = getIconComponent(message.decoration.icon);
-                        const colorClasses = getColorClasses(message.decoration.color);
                         return <IconComponent className={`h-4 w-4 ${colorClasses.icon}`} />;
                       })()
                     ) : (
@@ -218,14 +266,15 @@ export default function ChatInterface({ documentData, language }) {
                       : message.isError
                       ? 'bg-red-900/50 border border-red-500/30 text-red-200'
                       : message.decoration
-                      ? (() => {
-                          const colorClasses = getColorClasses(message.decoration.color);
-                          return `${colorClasses.bg} border-l-4 ${colorClasses.accent} text-gray-100`;
-                        })()
+                      ? `${colorClasses.bg} border-l-4 ${colorClasses.accent} text-gray-100` // FIX: Use static class from lookup
                       : 'bg-gray-700 text-gray-100 border border-gray-600'
                   }`}>
                     {message.type === 'bot' && message.decoration && (
                       <div className="flex items-center space-x-2 mb-2 pb-2 border-b border-gray-600/50">
+                        {/* NOTE: These classes are also dynamically generated but use a finite set 
+                           (red, green, orange, purple, blue) which Tailwind often includes if used 
+                           statically somewhere, but for safety, consider using a full static object if 
+                           these break too. */}
                         <span className={`text-xs font-medium capitalize px-2 py-1 rounded ${
                           message.decoration.color === 'red' ? 'bg-red-900/50 text-red-200' :
                           message.decoration.color === 'green' ? 'bg-green-900/50 text-green-200' :
@@ -262,7 +311,8 @@ export default function ChatInterface({ documentData, language }) {
                   </div>
                 )}
               </div>
-            ))}
+            );
+          })}
             
             {isLoading && (
               <div className="flex items-start space-x-3">
@@ -290,7 +340,7 @@ export default function ChatInterface({ documentData, language }) {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type your question about the document..."
+              placeholder={t.typeQuestion}
               disabled={isLoading}
               className="w-full resize-none border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               rows="2"

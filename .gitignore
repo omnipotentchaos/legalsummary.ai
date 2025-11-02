@@ -1,39 +1,83 @@
-Dependencies
-
+# Dependencies
 /node_modules
-Next.js build output and cache
+/.pnp
+.pnp.js
 
+# Next.js build output and cache
 /.next/
 /out/
-Environment Variables
-Ignore all local environment files.
-Never commit secrets or API keys!
+.next
 
+# Environment Variables
+# Ignore all local environment files.
+# Never commit secrets or API keys!
 .env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 .env
+
+# Google Cloud & Firebase credentials
 key.json
-Production build folder (if you are exporting a static site)
+service-account.json
+*-service-account.json
+firebase-adminsdk-*.json
 
+# Production build folder (if you are exporting a static site)
 /build
-Log files
 
+# Testing
+/coverage
+
+# Log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *.log
-Temporary files and folders
+lerna-debug.log*
+.pnpm-debug.log*
 
+# Temporary files and folders
 /temp/
-Editor directories and files
+*.tmp
 
+# Editor directories and files
 .vscode/
 .idea/
 *.suo
-.ntvs
+*.ntvs*
 *.njsproj
 *.sln
 *.sw?
-OS-generated files
+*.swp
 
+# OS-generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+Desktop.ini
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Deployment scripts (optional - keep these if you want them in repo)
+cloud-run-setup.sh
+deploy-with-build-args.sh
+fix-firebase-api.sh
+clear-and-reset-firebase.sh
+create-secrets-from-env.sh
+Dockerfile
+debug-auth.sh
+diagnostic.js
+# Redis password file
+redis_password_file.txt
+server.js
