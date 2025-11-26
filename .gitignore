@@ -81,3 +81,6 @@ diagnostic.js
 # Redis password file
 redis_password_file.txt
 server.js
+
+#Extra
+/extra

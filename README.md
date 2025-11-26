@@ -40,6 +40,7 @@ npm install   # or yarn
 cp .env.example .env  # fill in your GCP credentials
 npm run dev   # starts Next.js frontend + API routes
 ```
+Refer to [GCP_SETUP_GUIDE.md](https://github.com/omnipotentchaos/legalsummary.ai/blob/main/GCP_SETUP_GUIDE.md) for more details.
 
 ### Environment Variables (.env.example)
 ```bash
