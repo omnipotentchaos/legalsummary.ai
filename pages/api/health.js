@@ -31,8 +31,9 @@ export default async function handler(req, res) {
 
     // Check Google Cloud services
     healthCheck.services.googleCloud = {
-      configured: !!(process.env.GOOGLE_CLOUD_PROJECT_ID && 
-                     process.env.GOOGLE_CLOUD_PRIVATE_KEY),
+      configured: !!(process.env.GOOGLE_CLOUD_PROJECT_ID &&
+        (process.env.GOOGLE_CLOUD_PRIVATE_KEY ||
+          process.env.GOOGLE_APPLICATION_CREDENTIALS)),
       projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || 'not configured'
     };
 
@@ -52,12 +53,12 @@ export default async function handler(req, res) {
     healthCheck.status = allServicesHealthy ? 'healthy' : 'degraded';
 
     const statusCode = healthCheck.status === 'healthy' ? 200 : 503;
-    
+
     res.status(statusCode).json(healthCheck);
 
   } catch (error) {
     console.error('Health check error:', error);
-    
+
     res.status(503).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
