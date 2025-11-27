@@ -586,31 +586,31 @@ export default function Dashboard() {
 
       {/* Header */}
       <header className="bg-gray-800 shadow-sm border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex-1 flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap justify-between items-center py-3 sm:py-6 gap-3">
+            <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
               {/* Show back button when viewing a document AND came from somewhere specific */}
               {docId && returnTo && (
                 <button
                   onClick={handleBackNavigation}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
                   title={`Back to ${returnTo === 'history' ? 'History' : 'Previous Page'}`}
                 >
-                  <ArrowLeft className="h-6 w-6" />
+                  <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               )}
 
-              <div>
+              <div className="min-w-0">
                 <h1
                   onClick={handleNewDocument}
-                  className="text-3xl font-bold text-white cursor-pointer hover:text-blue-400 transition-colors"
+                  className="text-lg sm:text-2xl lg:text-3xl font-bold text-white cursor-pointer hover:text-blue-400 transition-colors truncate"
                 >
                   Legal Document Demystifier
                 </h1>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 flex-shrink-0">
 
               {documentData && (
                 <TextToSpeechButton
@@ -625,9 +625,9 @@ export default function Dashboard() {
                   href={`/subscription?docId=${documentData.firestoreDocId || ''}`}
                   passHref
                 >
-                  <button className="flex items-center space-x-2 px-4 py-2 border border-red-600 rounded-lg bg-red-700 hover:bg-red-600 transition-colors text-white font-medium">
+                  <button className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 border border-red-600 rounded-lg bg-red-700 hover:bg-red-600 transition-colors text-white font-medium text-sm">
                     <Gavel className="h-4 w-4" />
-                    <span className="hidden sm:inline">Get Legal Advice</span>
+                    <span className="hidden md:inline">Get Legal Advice</span>
                   </button>
                 </Link>
               )}
@@ -636,9 +636,9 @@ export default function Dashboard() {
                 href={documentData?.firestoreDocId ? `/history?currentDoc=${documentData.firestoreDocId}` : '/history'}
                 passHref
               >
-                <button className="flex items-center space-x-2 px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-white">
+                <button className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-white text-sm">
                   <History className="h-4 w-4" />
-                  <span className="hidden sm:inline">History</span>
+                  <span className="hidden md:inline">History</span>
                 </button>
               </Link>
 
