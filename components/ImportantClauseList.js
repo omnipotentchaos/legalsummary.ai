@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router'; 
-import { AlertTriangle, ChevronDown, ChevronUp, Info, CheckCircle, Mail, Briefcase, Search } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, Info, CheckCircle, Search, Briefcase } from 'lucide-react';
 import PlainLanguageRewriter from './PlainLanguageRewriter'; 
 
 export default function ImportantClauseList({ clauses, language, onClauseClick }) {
   const router = useRouter(); 
   const { docId } = router.query;
   const [expandedSections, setExpandedSections] = useState({ high: true, medium: true, low: false });
-  const [negotiatorOpen, setNegotiatorOpen] = useState(false);
-  const [selectedClause, setSelectedClause] = useState(null);
 
-  // --- FULL TRANSLATION DICTIONARY (12 Languages) ---
+  // --- FULL TRANSLATION DICTIONARY ---
   const translations = {
     en: {
       title: 'AI-Identified Important Clauses',
@@ -21,7 +19,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'clauses',
       riskLevel: 'Risk Level',
       legalAdvice: 'Get Legal Advice',
-      draftObjection: 'Draft Objection',
       clauseSuffix: 'Clause',
       clauseTypes: {
         'Payment': 'Payment', 'Termination': 'Termination', 'Liability': 'Liability',
@@ -32,7 +29,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'Default', 'Repayment': 'Repayment', 'general': 'General'
       }
     },
-    hi: { // Hindi
+    hi: { 
       title: 'AI द्वारा पहचाने गए महत्वपूर्ण खंड',
       subtitle: 'जोखिम गंभीरता के आधार पर फ्लैग किए गए खंडों की समीक्षा करें।',
       highRisk: 'उच्च जोखिम वाले खंड',
@@ -41,7 +38,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'खंड',
       riskLevel: 'जोखिम स्तर',
       legalAdvice: 'कानूनी सलाह लें',
-      draftObjection: 'आपत्ति ड्राफ्ट करें',
       clauseSuffix: 'खंड',
       clauseTypes: {
         'Payment': 'भुगतान', 'Termination': 'समाप्ति', 'Liability': 'दायित्व',
@@ -52,7 +48,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'डिफ़ॉल्ट', 'Repayment': 'चुकौती', 'general': 'सामान्य'
       }
     },
-    bn: { // Bengali
+    bn: { 
       title: 'AI দ্বারা চিহ্নিত গুরুত্বপূর্ণ ধারা',
       subtitle: 'ঝুঁকির তীব্রতা অনুসারে চিহ্নিত ধারাগুলো পর্যালোচনা করুন।',
       highRisk: 'উচ্চ ঝুঁকির ধারা',
@@ -61,7 +57,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'ধারা',
       riskLevel: 'ঝুঁকির মাত্রা',
       legalAdvice: 'আইনি পরামর্শ নিন',
-      draftObjection: 'আপত্তি লিখুন',
       clauseSuffix: 'ধারা',
       clauseTypes: {
         'Payment': 'পেমেন্ট', 'Termination': 'সমাপ্তি', 'Liability': 'দায়',
@@ -72,7 +67,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'খেলাপ', 'Repayment': 'পরিশোধ', 'general': 'সাধারণ'
       }
     },
-    te: { // Telugu
+    te: { 
       title: 'AI గుర్తించిన ముఖ్యమైన నిబంధనలు',
       subtitle: 'రిస్క్ తీవ్రత ఆధారంగా ఫ్లాగ్ చేయబడిన నిబంధనలను సమీక్షించండి.',
       highRisk: 'అధిక రిస్క్ నిబంధనలు',
@@ -81,7 +76,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'నిబంధనలు',
       riskLevel: 'రిస్క్ స్థాయి',
       legalAdvice: 'న్యాయ సలహా పొందండి',
-      draftObjection: 'అభ్యంతరం రాయండి',
       clauseSuffix: 'నిబంధన',
       clauseTypes: {
         'Payment': 'చెల్లింపు', 'Termination': 'రద్దు', 'Liability': 'బాధ్యత',
@@ -92,7 +86,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'డిఫాల్ట్', 'Repayment': 'తిరిగి చెల్లింపు', 'general': 'సాధారణ'
       }
     },
-    mr: { // Marathi
+    mr: { 
       title: 'AI ने ओळखलेली महत्त्वाची कलमे',
       subtitle: 'जोखिम तीव्रतेनुसार फ्लॅग केलेल्या कलमांचे पुनरावलोकन करा.',
       highRisk: 'उच्च जोखीम कलमे',
@@ -101,7 +95,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'कलमे',
       riskLevel: 'जोखीम स्तर',
       legalAdvice: 'कायदेशीर सल्ला घ्या',
-      draftObjection: 'आक्षेप मसुदा करा',
       clauseSuffix: 'कलम',
       clauseTypes: {
         'Payment': 'देयक', 'Termination': 'समाप्ती', 'Liability': 'दायित्व',
@@ -112,7 +105,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'कसूर', 'Repayment': 'परतफेड', 'general': 'सामान्य'
       }
     },
-    ta: { // Tamil
+    ta: { 
       title: 'AI கண்டறிந்த முக்கிய பிரிவுகள்',
       subtitle: 'ஆபத்து தீவிரத்தின் அடிப்படையில் குறிக்கப்பட்ட பிரிவுகளை மதிப்பாய்வு செய்யவும்.',
       highRisk: 'அதிக ஆபத்துள்ள பிரிவுகள்',
@@ -121,7 +114,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'பிரிவுகள்',
       riskLevel: 'ஆபத்து நிலை',
       legalAdvice: 'சட்ட ஆலோசனை பெறுங்கள்',
-      draftObjection: 'எதிர்ப்பு வரைவு',
       clauseSuffix: 'பிரிவு',
       clauseTypes: {
         'Payment': 'கட்டணம்', 'Termination': 'முடிவுறுத்தல்', 'Liability': 'பொறுப்பு',
@@ -132,7 +124,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'தவறுதல்', 'Repayment': 'திருப்பிச் செலுத்துதல்', 'general': 'பொது'
       }
     },
-    ur: { // Urdu
+    ur: { 
       title: 'AI کی شناخت کردہ اہم شقیں',
       subtitle: 'خطرے کی شدت کی بنیاد پر نشان زد شقوں کا جائزہ لیں۔',
       highRisk: 'زیادہ خطرے والی شقیں',
@@ -141,7 +133,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'شقیں',
       riskLevel: 'خطرے کی سطح',
       legalAdvice: 'قانونی مشورہ لیں',
-      draftObjection: 'اعتراض کا مسودہ',
       clauseSuffix: 'شق',
       clauseTypes: {
         'Payment': 'ادائیگی', 'Termination': 'خاتمہ', 'Liability': 'ذمہ داری',
@@ -152,7 +143,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'ڈیفالٹ', 'Repayment': 'واپسی', 'general': 'عام'
       }
     },
-    gu: { // Gujarati
+    gu: { 
       title: 'AI દ્વારા ઓળખાયેલ મહત્વપૂર્ણ કલમો',
       subtitle: 'જોખમની તીવ્રતાના આધારે ચિહ્નિત કલમોની સમીક્ષા કરો.',
       highRisk: 'ઉચ્ચ જોખમ કલમો',
@@ -161,7 +152,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'કલમો',
       riskLevel: 'જોખમ સ્તર',
       legalAdvice: 'કાનૂની સલાહ લો',
-      draftObjection: 'વાંધો લખો',
       clauseSuffix: 'કલમ',
       clauseTypes: {
         'Payment': 'ચુકવણી', 'Termination': 'સમાપ્તિ', 'Liability': 'જવાબદારી',
@@ -172,7 +162,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'ડિફોલ્ટ', 'Repayment': 'પુનઃચુકવણી', 'general': 'સામાન્ય'
       }
     },
-    kn: { // Kannada
+    kn: { 
       title: 'AI ಗುರುತಿಸಿದ ಪ್ರಮುಖ ಷರತ್ತುಗಳು',
       subtitle: 'ಅಪಾಯದ ತೀವ್ರತೆಯ ಆಧಾರದ ಮೇಲೆ ಷರತ್ತುಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.',
       highRisk: 'ಅಧಿಕ ಅಪಾಯದ ಷರತ್ತುಗಳು',
@@ -181,7 +171,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'ಷರತ್ತುಗಳು',
       riskLevel: 'ಅಪಾಯದ ಮಟ್ಟ',
       legalAdvice: 'ಕಾನೂನು ಸಲಹೆ ಪಡೆಯಿರಿ',
-      draftObjection: 'ಆಕ್ಷೇಪಣೆ ಬರೆಯಿರಿ',
       clauseSuffix: 'ಷರತ್ತು',
       clauseTypes: {
         'Payment': 'ಪಾವತಿ', 'Termination': 'ಮುಕ್ತಾಯ', 'Liability': 'ಹೊಣೆಗಾರಿಕೆ',
@@ -192,7 +181,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'ಸುಸ್ತಿದಾರ', 'Repayment': 'ಮರುಪಾವತಿ', 'general': 'ಸಾಮಾನ್ಯ'
       }
     },
-    ml: { // Malayalam
+    ml: { 
       title: 'AI തിരിച്ചറിഞ്ഞ പ്രധാന വ്യവസ്ഥകൾ',
       subtitle: 'അപകടസാധ്യതയനുസരിച്ച് തരംതിരിച്ച വ്യവസ്ഥകൾ പരിശോധിക്കുക.',
       highRisk: 'ഉയർന്ന അപകടസാധ്യതയുള്ളവ',
@@ -201,7 +190,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'വ്യവസ്ഥകൾ',
       riskLevel: 'അപകട നില',
       legalAdvice: 'നിയമോപദേശം നേടുക',
-      draftObjection: 'എതിർപ്പ് തയ്യാറാക്കുക',
       clauseSuffix: 'വകുപ്പ്',
       clauseTypes: {
         'Payment': 'പേയ്മെന്റ്', 'Termination': 'അവസാനിപ്പിക്കൽ', 'Liability': 'ബാധ്യത',
@@ -212,7 +200,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'വീഴ്ച', 'Repayment': 'തിരിച്ചടവ്', 'general': 'പൊതുവായ'
       }
     },
-    pa: { // Punjabi
+    pa: { 
       title: 'AI ਦੁਆਰਾ ਪਛਾਣੀਆਂ ਗਈਆਂ ਮਹੱਤਵਪੂਰਨ ਧਾਰਾਵਾਂ',
       subtitle: 'ਜੋਖਮ ਦੀ ਗੰਭੀਰਤਾ ਦੇ ਅਧਾਰ ਤੇ ਧਾਰਾਵਾਂ ਦੀ ਸਮੀਖਿਆ ਕਰੋ।',
       highRisk: 'ਉੱਚ ਜੋਖਮ ਵਾਲੀਆਂ ਧਾਰਾਵਾਂ',
@@ -221,7 +209,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'ਧਾਰਾਵਾਂ',
       riskLevel: 'ਜੋਖਮ ਪੱਧਰ',
       legalAdvice: 'ਕਾਨੂੰਨੀ ਸਲਾਹ ਲਓ',
-      draftObjection: 'ਇਤਰਾਜ਼ ਲਿਖੋ',
       clauseSuffix: 'ਧਾਰਾ',
       clauseTypes: {
         'Payment': 'ਭੁਗਤਾਨ', 'Termination': 'ਸਮਾਪਤੀ', 'Liability': 'ਦੇਣਦਾਰੀ',
@@ -232,7 +219,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
         'Default': 'ਡਿਫਾਲਟ', 'Repayment': 'ਮੋੜਨਾ', 'general': 'ਆਮ'
       }
     },
-    or: { // Odia
+    or: { 
       title: 'AI ଦ୍ୱାରା ଚିହ୍ନଟ ହୋଇଥିବା ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ଧାରା',
       subtitle: 'ବିପଦର ଗମ୍ଭୀରତା ଅନୁଯାୟୀ ଧାରାଗୁଡ଼ିକର ସମୀକ୍ଷା କରନ୍ତୁ।',
       highRisk: 'ଉଚ୍ଚ ବିପଦ ଧାରା',
@@ -241,7 +228,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       clauses: 'ଧାରା',
       riskLevel: 'ବିପଦ ସ୍ତର',
       legalAdvice: 'ଆଇନଗତ ପରାମର୍ଶ ନିଅନ୍ତୁ',
-      draftObjection: 'ଆପତ୍ତି ଲେଖନ୍ତୁ',
       clauseSuffix: 'ଧାରା',
       clauseTypes: {
         'Payment': 'ଦେୟ', 'Termination': 'ସମାପ୍ତି', 'Liability': 'ଦାୟିତ୍ୱ',
@@ -256,9 +242,7 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
 
   const t = translations[language] || translations.en;
 
-  // Helper to translate clause type
   const getTranslatedType = (type) => {
-    // Try exact match, or capitalize and match (e.g. 'payment' -> 'Payment')
     const key = type.charAt(0).toUpperCase() + type.slice(1);
     const map = t.clauseTypes || translations.en.clauseTypes;
     return map[key] || map[type] || type; 
@@ -277,11 +261,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
   };
 
   const toggleSection = (section) => setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
-
-  const openNegotiator = (clause) => {
-    setSelectedClause(clause);
-    setNegotiatorOpen(true);
-  };
 
   const SectionHeader = ({ icon: Icon, title, count, section, colorClass }) => (
     <button
@@ -314,7 +293,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
       >
         <div className="flex justify-between items-start mb-4">
           <div>
-             {/* TRANSLATED TITLE: "Assignment Clause" -> "हस्तांतरण खंड" */}
              <span className="font-bold text-white text-2xl block capitalize mb-2">
                 {getTranslatedType(clause.type)} {t.clauseSuffix}
              </span>
@@ -331,15 +309,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
                 >
                 <Briefcase className="h-4 w-4" />
                 <span>{t.legalAdvice}</span>
-                </button>
-            )}
-            {(clause.riskCategory === 'high' || clause.riskCategory === 'medium') && (
-                <button 
-                onClick={(e) => { e.stopPropagation(); openNegotiator(clause); }}
-                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-md text-sm font-bold"
-                >
-                <Mail className="h-4 w-4" />
-                <span>{t.draftObjection}</span>
                 </button>
             )}
           </div>
@@ -386,8 +355,6 @@ export default function ImportantClauseList({ clauses, language, onClauseClick }
           {expandedSections.low && categorizedClauses.low.map(renderClauseCard)}
         </div>
       )}
-
-      
     </div>
   );
 }
