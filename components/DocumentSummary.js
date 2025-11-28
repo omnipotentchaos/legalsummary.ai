@@ -1,19 +1,13 @@
-// components/DocumentSummary.js
-
-import { FileText, Users, DollarSign, Calendar, AlertTriangle, ShieldCheck, Copy, Download, MessageSquare } from 'lucide-react'; import ReactMarkdown from 'react-markdown';
-import { useState } from 'react';
+import { FileText, Users, DollarSign, Calendar, AlertTriangle, ShieldCheck, Copy, Download, Info } from 'lucide-react'; 
+import ReactMarkdown from 'react-markdown';
 
 export default function DocumentSummary({ documentData, language = 'en' }) {
   const summary = documentData.summary || '';
-  const [showFullText, setShowFullText] = useState(false);
 
-  // ADDED FUNCTIONS
   const handleCopySummary = () => {
     navigator.clipboard.writeText(summary).then(() => {
       alert('Summary copied to clipboard!');
-    }).catch(err => {
-      console.error('Could not copy text: ', err);
-    });
+    }).catch(err => console.error('Could not copy text: ', err));
   };
 
   const handleDownloadSummary = () => {
@@ -28,232 +22,161 @@ export default function DocumentSummary({ documentData, language = 'en' }) {
     document.body.removeChild(a);
   };
 
+  // --- 1. UI STATIC TEXT TRANSLATIONS ---
+  const uiTranslations = {
+    en: { title: 'Document Analysis Summary', subtitle: 'A clear breakdown of your document\'s most important terms.', keyDetails: 'Key Details & Overview' },
+    hi: { title: 'दस्तावेज़ विश्लेषण सारांश', subtitle: 'आपके दस्तावेज़ की सबसे महत्वपूर्ण शर्तों का स्पष्ट विवरण।', keyDetails: 'प्रमुख विवरण और अवलोकन' },
+    mr: { title: 'दस्तऐवज विश्लेषण सारांश', subtitle: 'तुमच्या दस्तऐवजातील सर्वात महत्त्वाच्या अटींचे स्पष्ट विश्लेषण.', keyDetails: 'मुख्य तपशील आणि विहंगावलोकन' },
+    bn: { title: 'নথি বিশ্লেষণ সারাংশ', subtitle: 'গুরুত্বপূর্ণ শর্তাবলীর স্পষ্ট বিভাজন।', keyDetails: 'মূল বিবরণ' },
+    te: { title: 'పత్ర విశ్లేషణ సారాంశం', subtitle: 'ముఖ్యమైన నిబంధనల విభజన.', keyDetails: 'ముఖ్య వివరాలు' },
+    ta: { title: 'ஆவணப் பகுப்பாய்வு சுருக்கம்', subtitle: 'முக்கியமான விதிமுறைகளின் தெளிவான முறிவு.', keyDetails: 'முக்கிய விவரங்கள்' },
+    ur: { title: 'دستاویزی تجزیہ کا خلاصہ', subtitle: 'اہم ترین شرائط کی واضح تفصیل۔', keyDetails: 'کلیدی تفصیلات' },
+    gu: { title: 'દસ્તાવેજ વિશ્લેષણ સારાંશ', subtitle: 'મહત્વપૂર્ણ શરતોનું સ્પષ્ટ વિભાજન.', keyDetails: 'મુખ્ય વિગતો' },
+    kn: { title: 'ದಾಖಲೆ ವಿಶ್ಲೇಷಣೆ ಸಾರಾಂಶ', subtitle: 'ಪ್ರಮುಖ ನಿಯಮಗಳ ಸ್ಪಷ್ಟ ವಿಂಗಡಣೆ.', keyDetails: 'ಪ್ರಮುಖ ವಿವರಗಳು' },
+    ml: { title: 'രേഖാ വിശകലന സംഗ്രഹം', subtitle: 'പ്രധാന നിബന്ധനകളുടെ അവലോകനം.', keyDetails: 'പ്രധാന വിവരങ്ങൾ' },
+    pa: { title: 'ਦਸਤਾਵੇਜ਼ ਵਿਸ਼ਲੇਸ਼ਣ ਸਾਰ', subtitle: 'ਮਹੱਤਵਪੂਰਨ ਸ਼ਰਤਾਂ ਦਾ ਵੇਰਵਾ।', keyDetails: 'ਮੁੱਖ ਵੇਰਵੇ' },
+    or: { title: 'ଦସ୍ତାବିଜ ବିଶ୍ଳେଷଣ ସାରାଂଶ', subtitle: 'ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ସର୍ତ୍ତାବଳୀର ବିବରଣୀ।', keyDetails: 'ମୁଖ୍ୟ ବିବରଣୀ' }
+  };
 
-
-  // UI Translation dictionary
-  const translations = {
+  // --- 2. HEADER MAPPINGS (ROBUST) ---
+  // Mappings for swapping English headers from AI to Target Language
+  const headerMappings = {
     en: {
-      title: 'Document Analysis Summary',
-      subtitle: 'A clear breakdown of your document\'s most important terms.'
+      'Parties': 'Parties Involved',
+      'Financial': 'Financial Obligations',
+      'Rights': 'Rights and Obligations',
+      'Termination': 'Termination and Renewal',
+      'Risks': 'Risks and Penalties',
+      'Risk': 'Risks and Penalties',
+      'Critical': 'Critical Risk Assessment'
     },
     hi: {
-      title: 'दस्तावेज़ विश्लेषण सारांश',
-      subtitle: 'आपके दस्तावेज़ की सबसे महत्वपूर्ण शर्तों का स्पष्ट विवरण।'
-    },
-    bn: {
-      title: 'নথি বিশ্লেষণ সারসংক্ষেপ',
-      subtitle: 'আপনার নথির সবচেয়ে গুরুত্বপূর্ণ শর্তাবলীর স্পষ্ট বিবরণ।'
-    },
-    te: {
-      title: 'పత్రం విశ్లేషణ సారాంశం',
-      subtitle: 'మీ పత్రం యొక్క అత్యంత ముఖ్యమైన నిబంధనల స్పష్టమైన వివరణ।'
+      'Parties': 'संबंधित पक्ष',
+      'Financial': 'वित्तीय दायित्व',
+      'Rights': 'अधिकार और दायित्व',
+      'Termination': 'समाप्ति और नवीनीकरण',
+      'Risks': 'जोखिम और दंड',
+      'Risk': 'जोखिम और दंड',
+      'Critical': 'गंभीर जोखिम मूल्यांकन'
     },
     mr: {
-      title: 'दस्तऐवज विश्लेषण सारांश',
-      subtitle: 'तुमच्या दस्तऐवजाच्या सर्वात महत्त्वाच्या अटींचे स्पष्ट विवरण।'
+      'Parties': 'संबंधित पक्ष',
+      'Financial': 'आर्थिक दायित्वे',
+      'Rights': 'हक्क आणि दायित्वे',
+      'Termination': 'समाप्ती आणि नूतनीकरण',
+      'Risks': 'जोखीम आणि दंड',
+      'Risk': 'जोखीम आणि दंड',
+      'Critical': 'गंभीर जोखीम मूल्यांकन'
     },
-    ta: {
-      title: 'ஆவண பகுப்பாய்வு சுருக்கம்',
-      subtitle: 'உங்கள் ஆவணத்தின் மிக முக்கியமான விதிமுறைகளின் தெளிவான பகுப்பாய்வு।'
-    },
-    kn: {
-      title: 'ಡಾಕ್ಯುಮೆಂಟ್ ವಿಶ್ಲೇಷಣೆ ಸಾರಾಂಶ',
-      subtitle: 'ನಿಮ್ಮ ಡಾಕ್ಯುಮೆಂಟ್‌ನ ಅತ್ಯಂತ ಮುಖ್ಯವಾದ ನಿಯಮಗಳ ಸ್ಪಷ್ಟ ವಿವರಣೆ।'
-    },
-    ml: {
-      title: 'ഡോക്യുമെന്റ് വിശകലനം സംഗ്രഹം',
-      subtitle: 'നിങ്ങളുടെ ഡോക്യുമെന്റിന്റെ ഏറ്റവും പ്രധാനപ്പെട്ട നിബന്ധനകളുടെ വ്യക്തമായ വിശദീകരണം।'
-    },
-    gu: {
-      title: 'દસ્તાવેજ વિશ્લેષણ સારાંશ',
-      subtitle: 'તમારા દસ્તાવેજની સૌથી મહત્વપૂર્ણ શરતોનું સ્પષ્ટ વિવરણ।'
-    },
-    pa: {
-      title: 'ਦਸਤਾਵੇਜ਼ ਵਿਸ਼ਲੇਸ਼ਣ ਸਾਰ',
-      subtitle: 'ਤੁਹਾਡੇ ਦਸਤਾਵੇਜ਼ ਦੀਆਂ ਸਭ ਤੋਂ ਮਹੱਤਵਪੂਰਨ ਸ਼ਰਤਾਂ ਦਾ ਸਪੱਸ਼ਟ ਵਿਵਰਣ।'
-    },
-    or: {
-      title: 'ଡକୁମେଣ୍ଟ ବିଶ୍ଳେଷଣ ସାରାଂଶ',
-      subtitle: 'ଆପଣଙ୍କ ଡକୁମେଣ୍ଟର ସବୁଠାରୁ ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ସର୍ତ୍ତଗୁଡ଼ିକର ସ୍ପଷ୍ଟ ବିବରଣୀ।'
-    },
-    ur: {
-      title: 'دستاویز تجزیہ خلاصہ',
-      subtitle: 'آپ کی دستاویز کی سب سے اہم شرائط کی واضح تفصیل۔'
-    },
-    es: {
-      title: 'Resumen de Análisis del Documento',
-      subtitle: 'Un desglose claro de los términos más importantes de su documento.'
-    },
-    fr: {
-      title: 'Résumé d\'Analyse du Document',
-      subtitle: 'Une analyse claire des termes les plus importants de votre document.'
-    },
-    de: {
-      title: 'Dokumentanalyse Zusammenfassung',
-      subtitle: 'Eine klare Aufschlüsselung der wichtigsten Bedingungen Ihres Dokuments.'
-    },
-    zh: {
-      title: '文档分析摘要',
-      subtitle: '清晰展示您文档中最重要的条款。'
-    },
-    ja: {
-      title: '文書分析概要',
-      subtitle: 'お客様の文書の最も重要な条項の明確な内訳。'
-    }
+    // Fallbacks for other languages to ensure they at least get translated headers
+    bn: { 'Parties': 'জড়িত পক্ষ', 'Financial': 'আর্থিক বাধ্যবাধকতা', 'Rights': 'অধিকার', 'Termination': 'সমাপ্তি', 'Risks': 'ঝুঁকি', 'Critical': 'গুরুত্বপূর্ণ ঝুঁকি' },
+    gu: { 'Parties': 'સંબંધિત પક્ષો', 'Financial': 'નાણાકીય', 'Rights': 'અધિકારો', 'Termination': 'સમાપ્તિ', 'Risks': 'જોખમો', 'Critical': 'ગંભીર જોખમ' },
+    te: { 'Parties': 'పార్టీలు', 'Financial': 'ఆర్థిక', 'Rights': 'హక్కులు', 'Termination': 'రద్దు', 'Risks': 'ప్రమాదాలు', 'Critical': 'కీలక రిస్క్' },
+    ta: { 'Parties': 'தரப்பினர்', 'Financial': 'நிதி', 'Rights': 'உரிமைகள்', 'Termination': 'முடிவு', 'Risks': 'ஆபத்துகள்', 'Critical': 'முக்கிய ஆபத்து' },
+    kn: { 'Parties': 'ಪಕ್ಷಗಳು', 'Financial': 'ಹಣಕಾಸು', 'Rights': 'ಹಕ್ಕುಗಳು', 'Termination': 'ಮುಕ್ತಾಯ', 'Risks': 'ಅಪಾಯಗಳು', 'Critical': 'ಗಂಭೀರ ಅಪಾಯ' },
+    ml: { 'Parties': 'കക്ഷികൾ', 'Financial': 'സാമ്പത്തിക', 'Rights': 'അവകാശങ്ങൾ', 'Termination': 'അവസാനിപ്പിക്കൽ', 'Risks': 'അപകടസാധ്യത', 'Critical': 'നിർണ്ണായക' },
+    pa: { 'Parties': 'ਧਿਰਾਂ', 'Financial': 'ਵਿੱਤੀ', 'Rights': 'ਅਧਿਕਾਰ', 'Termination': 'ਸਮਾਪਤੀ', 'Risks': 'ਜੋਖਮ', 'Critical': 'ਗੰਭੀਰ' },
+    or: { 'Parties': 'ପକ୍ଷ', 'Financial': 'ଆର୍ଥିକ', 'Rights': 'ଅଧିକାର', 'Termination': 'ସମାପ୍ତି', 'Risks': 'ବିପଦ', 'Critical': 'ଗୁରୁତର' },
+    ur: { 'Parties': 'پارٹیاں', 'Financial': 'مالی', 'Rights': 'حقوق', 'Termination': 'خاتمہ', 'Risks': 'خطرات', 'Critical': 'اہم' }
   };
 
-  const t = translations[language] || translations.en;
+  const t = uiTranslations[language] || uiTranslations.en;
+  const h = headerMappings[language] || headerMappings.en;
 
-  // MODIFIED LOGIC: Extract the non-header introduction (Main Facts) separately
-  const sections = summary.split(/\n##\s+/).filter(s => s.trim().length > 0);
+  // Helper function to translate a header string with NORMALIZATION
+  const translateHeader = (rawTitle) => {
+    // 1. Normalize: Remove '**', ':', trim whitespace, lowercase
+    const cleanTitle = rawTitle.replace(/[*_:]/g, '').trim().toLowerCase();
+    
+    // 2. Check for keywords
+    if (cleanTitle.includes('parties')) return h['Parties'];
+    if (cleanTitle.includes('financial') || cleanTitle.includes('payment')) return h['Financial'];
+    if (cleanTitle.includes('rights') || cleanTitle.includes('obligation')) return h['Rights'];
+    if (cleanTitle.includes('termination') || cleanTitle.includes('renewal')) return h['Termination'];
+    if (cleanTitle.includes('risk') || cleanTitle.includes('penalt')) return h['Risks'];
+    if (cleanTitle.includes('critical')) return h['Critical'];
 
-  // The first element is the "Main Facts" or introductory content, which we ignore for display
-  // const introSectionContent = sections.length > 0 ? sections[0].trim() : '';
+    return rawTitle.replace(/[*_]/g, ''); // Fallback: just clean up markdown
+  };
+  
+  // --- PARSING LOGIC ---
+  const rawSections = summary.split(/(?:^|\n)##\s+/).filter(s => s.trim().length > 0);
+  
+  const mainFactsContent = rawSections.length > 0 && !rawSections[0].startsWith('#') 
+    ? rawSections[0] 
+    : null;
 
-  // The remaining sections are the card content (starting with ## Parties Involved)
-  const cardSections = sections.slice(1);
+  const cardSectionsRaw = mainFactsContent ? rawSections.slice(1) : rawSections;
 
-  const summarySections = cardSections.map((section, index) => {
+  const colorPalette = [
+    { icon: Users, color: '#4285F4', bg: 'rgba(66, 133, 244, 0.10)' },
+    { icon: DollarSign, color: '#34A853', bg: 'rgba(52, 168, 83, 0.10)' },
+    { icon: ShieldCheck, color: '#A142F4', bg: 'rgba(161, 66, 244, 0.10)' },
+    { icon: Calendar, color: '#FBBC05', bg: 'rgba(251, 188, 5, 0.10)' },
+    { icon: AlertTriangle, color: '#EA4335', bg: 'rgba(234, 67, 53, 0.10)' }
+  ];
+
+  const summarySections = cardSectionsRaw.map((section, index) => {
     const firstNewline = section.indexOf('\n');
-    const title = firstNewline > 0 ? section.substring(0, firstNewline).trim() : section.substring(0, 50).trim();
+    const rawTitle = firstNewline > 0 ? section.substring(0, firstNewline).trim() : section.substring(0, 50).trim();
     const content = firstNewline > 0 ? section.substring(firstNewline + 1).trim() : section.trim();
+    
+    // Translate the header
+    const title = translateHeader(rawTitle);
 
-    // Assign icons based on position, not keywords
-    const icons = [Users, DollarSign, ShieldCheck, Calendar, AlertTriangle];
-    const colors = ['indigo', 'green', 'blue', 'amber', 'red'];
-
-    return {
-      title,
-      content,
-      icon: icons[index % icons.length],
-      color: colors[index % colors.length]
-    };
+    // Assign Color
+    let config = colorPalette[index % colorPalette.length];
+    
+    // Smart Icon Matching (based on the English keywords in raw title)
+    const cleanRaw = rawTitle.toLowerCase();
+    if (cleanRaw.includes('parties')) config = colorPalette[0];
+    else if (cleanRaw.includes('financial')) config = colorPalette[1];
+    else if (cleanRaw.includes('rights')) config = colorPalette[2];
+    else if (cleanRaw.includes('termination')) config = colorPalette[3];
+    else if (cleanRaw.includes('risk')) config = colorPalette[4];
+    
+    return { title, content, ...config };
   }).filter(s => s.content.length > 20);
 
-
-  const colorClasses = {
-    indigo: {
-      bg: 'bg-indigo-900/20',
-      border: 'border-indigo-500/50',
-      icon: 'text-indigo-400'
-    },
-    green: {
-      bg: 'bg-green-900/20',
-      border: 'border-green-500/50',
-      icon: 'text-green-400'
-    },
-    blue: {
-      bg: 'bg-blue-900/20',
-      border: 'border-blue-500/50',
-      icon: 'text-blue-400'
-    },
-    amber: {
-      bg: 'bg-amber-900/20',
-      border: 'border-amber-500/50',
-      icon: 'text-amber-400'
-    },
-    red: {
-      bg: 'bg-red-900/20',
-      border: 'border-red-500/50',
-      icon: 'text-red-400'
-    }
-  };
-
   return (
-
-
     <div className="space-y-6">
-      <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-2xl font-semibold text-white flex items-center mb-2">
-              <FileText className="h-6 w-6 text-blue-400 mr-2" />
-              {t.title}
-            </h2>
-            <p className="text-gray-300">
-              {t.subtitle}
-            </p>
-          </div>
-          {/* ADDED BUTTONS */}
-          <div className="flex space-x-3 flex-shrink-0">
-            <button
-              onClick={handleCopySummary}
-              className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-white"
-              title="Copy Summary"
-            >
-              <Copy className="h-5 w-5" />
-            </button>
-            <button
-              onClick={handleDownloadSummary}
-              className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors text-white"
-              title="Download Summary"
-            >
-              <Download className="h-5 w-5" />
-            </button>
-          </div>
-          {/* END ADDED BUTTONS */}
+      <div className="bg-[#171717] rounded-xl border border-[#333333] p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-white flex items-center mb-2">
+            <FileText className="h-7 w-7 text-[#4285F4] mr-3" />
+            {t.title}
+          </h2>
+          <p className="text-gray-400 text-base">{t.subtitle}</p>
         </div>
-
-        {/* REMOVED rendering of introSectionContent here to skip 'Main Facts' display */}
+        <div className="flex space-x-3">
+          <button onClick={handleCopySummary} className="p-2.5 rounded-lg bg-[#252525] hover:bg-[#333333] text-gray-300 border border-[#333333]" title="Copy"><Copy className="h-5 w-5" /></button>
+          <button onClick={handleDownloadSummary} className="p-2.5 rounded-lg bg-[#4285F4] hover:bg-[#3367D6] text-white shadow-md" title="Download"><Download className="h-5 w-5" /></button>
+        </div>
       </div>
 
-      {/* ADDED FULL TEXT VIEW */}
-      {/* {documentData.originalText && (
-        <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
-          <button 
-            onClick={() => setShowFullText(!showFullText)}
-            className="w-full flex items-center justify-between text-gray-300 hover:text-white"
-          >
-            <div className="flex items-center space-x-2">
-              <MessageSquare className="h-5 w-5" />
-              <span className="font-medium">
-                {showFullText ? 'Hide Full Extracted Text Preview' : 'Show Full Extracted Text Preview'}
-              </span>
-            </div>
-            <span className="text-sm text-gray-500">{documentData.originalText.length.toLocaleString()} characters</span>
-          </button>
-          
-          {showFullText && (
-            <div className="mt-4 p-4 bg-gray-900 rounded-lg max-h-96 overflow-y-auto text-sm text-gray-400 whitespace-pre-wrap border border-gray-700">
-              {documentData.originalText}
-            </div>
-          )}
-        </div>
-      )} */}
-      {/* END ADDED FULL TEXT VIEW */}
+      
 
-
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {summarySections.length > 0 ? (
-          summarySections.map((section, index) => {
-            const Icon = section.icon;
-            const styles = colorClasses[section.color] || colorClasses.blue;
-
-            return (
-              <div key={index} className={`bg-gray-800 rounded-lg border p-6 transition-all hover:shadow-lg hover:-translate-y-1 ${styles.bg} ${styles.border}`}>
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 rounded-lg bg-gray-700">
-                    <Icon className={`h-5 w-5 ${styles.icon}`} />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">{section.title}</h3>
-                </div>
-                <div className="prose prose-invert max-w-none text-gray-300 text-sm">
-                  <ReactMarkdown>{section.content}</ReactMarkdown>
-                </div>
+      <div className="columns-1 md:columns-2 gap-6 space-y-6">
+        {summarySections.map((section, index) => (
+          <div key={index} className="break-inside-avoid rounded-xl border p-6 transition-all hover:-translate-y-1 hover:shadow-xl relative overflow-hidden flex flex-col mb-6"
+            style={{ backgroundColor: '#171717', borderColor: '#333333', borderTopWidth: '4px', borderTopColor: section.color }}>
+            <div className="flex items-center space-x-4 mb-5 pb-4 border-b border-[#333333]">
+              <div className="p-2.5 rounded-lg" style={{ backgroundColor: section.bg }}>
+                <section.icon className="h-6 w-6" style={{ color: section.color }} />
               </div>
-            );
-          })
-        ) : (
-          <div className="col-span-2 bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <div className="prose prose-invert max-w-none text-gray-300">
-              <ReactMarkdown>{summary}</ReactMarkdown>
+              <h3 className="text-xl font-bold text-white tracking-tight">{section.title}</h3>
             </div>
-            <div className="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded text-sm text-blue-200">
-              ℹ️ Full document summary shown. Sections could not be automatically categorized.
+            <div className="text-gray-300 text-lg leading-relaxed">
+              <ReactMarkdown components={{
+                  strong: ({node, ...props}) => <span className="block w-full mt-4 mb-2 text-white font-bold text-sm uppercase tracking-wide opacity-90" style={{ color: section.color }} {...props} />,
+                  li: ({node, ...props}) => <li className="mb-3 ml-5 list-disc marker:text-gray-500 pl-1" {...props} />,
+                  p: ({node, ...props}) => <p className="mb-3" {...props} />
+                }}>
+                {section.content}
+              </ReactMarkdown>
             </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );

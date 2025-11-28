@@ -1,9 +1,11 @@
-// Fixed API route with proper language support throughout
+// pages/api/upload.js
 import dotenv from 'dotenv';
 dotenv.config();
 import formidable from 'formidable';
 import fs from 'fs';
 import { DocumentProcessor } from '../../lib/documentProcessor';
+// ADDED: Import the redact function
+import { redactPII } from '../../lib/dlpService';
 
 export const config = {
   api: {
@@ -31,6 +33,9 @@ export default async function handler(req, res) {
     const [fields, files] = await form.parse(req);
     uploadedFile = files.document?.[0];
     
+    // EXTRACT PERSONA
+    const persona = fields.persona ? fields.persona[0] : 'General User';
+
     if (!uploadedFile) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
@@ -89,15 +94,28 @@ export default async function handler(req, res) {
       let summary = 'Document uploaded successfully.';
       try {
         summary = await Promise.race([
-          processor.generateSummary(extractedText, processingLanguage),
+          processor.generateSummary(extractedText, processingLanguage, persona),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Summary generation timeout')), 60000)
           )
         ]);
+        
+        // --- ADDED: SANITIZE SUMMARY WITH DLP ---
+        console.log('Sanitizing summary with DLP...');
+        const originalSummaryLength = summary.length;
+        summary = await redactPII(summary);
+        console.log(`DLP redaction complete. Length: ${originalSummaryLength} -> ${summary.length}`);
+        // ----------------------------------------
+
         console.log('Summary generated successfully in', processingLanguage, processingId);
       } catch (summaryError) {
         console.warn('Summary generation failed:', summaryError.message);
-        summary = processor.generateDetailedStructuredSummary(extractedText);
+        // Fallback if summary generation fails
+        if (processor.generateDetailedStructuredSummary) {
+             summary = processor.generateDetailedStructuredSummary(extractedText);
+        } else {
+             summary = "Summary generation failed.";
+        }
       }
 
       // Generate smart questions in detected language
@@ -126,7 +144,7 @@ export default async function handler(req, res) {
         detectedLanguage: processingLanguage,
         languageConfidence: languageDetection.confidence || 0.5,
         recommendedLanguage: languageDetection.confidence > 0.7 ? processingLanguage : 'en',
-        // Store original extracted text for regeneration
+        // Store original extracted text for regeneration (Note: You might want to redact this too if storing!)
         originalText: extractedText,
         processingStats: {
           totalClauses: Array.isArray(classifiedClauses) ? classifiedClauses.length : 0,
@@ -169,7 +187,7 @@ export default async function handler(req, res) {
         detectedLanguage: 'en',
         languageConfidence: 0.5,
         recommendedLanguage: 'en',
-        originalText: extractedText || '', // Include extracted text even in fallback
+        originalText: '', 
         hasPartialFailure: true,
         processingError: 'Limited processing due to technical constraints'
       };
